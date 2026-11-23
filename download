@@ -1,0 +1,16 @@
+node_modules
+dist
+.env
+.DS_Store
+
+# Lab 8 test outputs and local env
+.env.test
+coverage/
+*.test.json
+test-results/
+playwright-report/
+playwright/.cache/
+.env.e2e
+
+# Lab 12
+playwright-report/
