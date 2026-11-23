@@ -1,0 +1,11 @@
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import AuthPanel from './AuthPanel.jsx';
+import { renderWithProviders } from '../test/utils.jsx';
+describe('AuthPanel', () => {
+ test('renders login fields', () => { renderWithProviders(<AuthPanel user={null} onAuth={() => {}} onLogout={() => {}} />); expect(screen.getByPlaceholderText('E-mail')).toBeInTheDocument(); expect(screen.getByPlaceholderText(/Пароль/)).toHaveAttribute('type','password'); });
+ test('switches to registration mode', async () => { const user = userEvent.setup(); renderWithProviders(<AuthPanel user={null} onAuth={() => {}} onLogout={() => {}} />); await user.click(screen.getByText('Создать аккаунт')); expect(screen.getByPlaceholderText('Имя')).toBeInTheDocument(); expect(screen.getByRole('button', { name: 'Зарегистрироваться' })).toBeInTheDocument(); });
+ test('shows logged-in user and logout button', () => { renderWithProviders(<AuthPanel user={{name:'Айгерим', role:'farmer'}} onAuth={() => {}} onLogout={() => {}} />); expect(screen.getByText(/Айгерим/)).toBeInTheDocument(); expect(screen.getByRole('button', {name:'Выйти'})).toBeInTheDocument(); });
+ test('successful login stores token and calls onAuth', async () => { const user = userEvent.setup(); const onAuth = vi.fn(); renderWithProviders(<AuthPanel user={null} onAuth={onAuth} onLogout={() => {}} />); await user.type(screen.getByPlaceholderText('E-mail'),'farmer@agro.kz'); await user.type(screen.getByPlaceholderText(/Пароль/),'secret123'); await user.click(screen.getByRole('button',{name:'Войти'})); await screen.findByText(/Вы вошли как/); expect(localStorage.getItem('token')).toBe('test-token'); expect(onAuth).toHaveBeenCalledWith(expect.objectContaining({role:'farmer'})); });
+ test('shows server error for invalid login', async () => { const user = userEvent.setup(); renderWithProviders(<AuthPanel user={null} onAuth={() => {}} onLogout={() => {}} />); await user.type(screen.getByPlaceholderText('E-mail'),'no@user.kz'); await user.type(screen.getByPlaceholderText(/Пароль/),'badpass1'); await user.click(screen.getByRole('button',{name:'Войти'})); expect(await screen.findByText('Неверный e-mail или пароль')).toBeInTheDocument(); });
+});
